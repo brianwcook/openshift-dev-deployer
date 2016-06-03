@@ -13,6 +13,8 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+mkdir /root/deploy-ose
+
 echo "{{git_ssh_key}}" > /root/github_rsa
 chmod 600  /root/github_rsa
 mkdir /root/.ssh
@@ -108,10 +110,6 @@ chmod 600 /root/.ssh/known_hosts
 #  sleep 2
 # done
 
-# clone the source down
-cd ~
-git clone git@github.com:brianwcook/connect-registry.git
-
 # setup imagestreams
 cd /root
 
@@ -131,6 +129,7 @@ echo "{{user_script_b64}}" > user-script.b64
 base64 -d user-script.b64 > user-script.sh
 
 # run optional script
+# three brackets turns off escaping so quotes are sent properly
 {{{ user_script_exec}}}
 
 } > ~/cloud-init.out 2>&1

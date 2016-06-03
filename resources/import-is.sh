@@ -5,7 +5,7 @@ wget https://raw.githubusercontent.com/openshift/origin/master/examples/image-st
 
 #Get the builder image imagesteams.
 for f in image-streams-rhel7.json; do cat $f | oc create -n openshift -f -; done
-#for f in db-templates/*.json; do cat $f | oc create -n openshift -f -; done
+# for f in db-templates/*.json; do cat $f | oc create -n openshift -f -; done
 
 # wait for imagestreams to process.
    while true; do
@@ -16,3 +16,7 @@ for f in image-streams-rhel7.json; do cat $f | oc create -n openshift -f -; done
   fi
   sleep 1
 done
+
+
+# import the DB templates
+# for f in db-templates/*.json; do cat $f | oc create -n openshift -f -; done
