@@ -27,7 +27,7 @@ subscription-manager repos --enable rhel-7-server-optional-rpms
 subscription-manager repos --enable=rhel-server-rhscl-7-rpms
 subscription-manager repos --enable=rhel-7-server-extras-rpms
 
-yum -y install nano git yum-utils docker scl-utils httpd-tools wget
+yum -y install nano git yum-utils docker scl-utils httpd-tools wget svn
 
 # setup docker storage
 DEVS="/dev/xvdb" VG="docker-data" docker-storage-setup
@@ -117,12 +117,7 @@ echo "{{import_is_b64}}" > /root/deploy-ose/import-is.b64
 
 base64 -d /root/deploy-ose/import-is.b64 > /root/deploy-ose/import-is.sh
 
-wget https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json
 docker exec ose /bin/bash -c "sh /rootfs/root/deploy-ose/import-is.sh"
-
-# get the database tempaltes and install them
-# wget the db templates https://github.com/openshift/origin/tree/master/examples/db-templates
-
 
 echo "{{user_script_b64}}" > user-script.b64
 
