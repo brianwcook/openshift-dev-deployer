@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ~/deploy-ose
+cd /rootfs/root/deploy-ose
 #wget https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json
 
 #Get the builder image imagesteams.
