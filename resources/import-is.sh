@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd ~/deploy-ose
-wget https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json
+#wget https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json
 
 #Get the builder image imagesteams.
 for f in image-streams-rhel7.json; do cat $f | oc create -n openshift -f -; done
@@ -18,7 +18,7 @@ for f in image-streams-rhel7.json; do cat $f | oc create -n openshift -f -; done
 done
 
 # get the database tempaltes and install them
-svn export https://github.com/openshift/origin/trunk/examples/db-templates
+#svn export https://github.com/openshift/origin/trunk/examples/db-templates
 
 # import the DB templates
 for f in db-templates/*.json; do cat $f | oc create -n openshift -f -; done

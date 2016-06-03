@@ -111,10 +111,13 @@ chmod 600 /root/.ssh/known_hosts
 # done
 
 # setup imagestreams
-cd /root
+cd /root/deploy-ose
+wget https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json
+svn export https://github.com/openshift/origin/trunk/examples/db-templates
 
 echo "{{import_is_b64}}" > /root/deploy-ose/import-is.b64
 
+cd ~
 base64 -d /root/deploy-ose/import-is.b64 > /root/deploy-ose/import-is.sh
 
 docker exec ose /bin/bash -c "sh /rootfs/root/deploy-ose/import-is.sh"
