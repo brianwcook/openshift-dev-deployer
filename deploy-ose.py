@@ -153,7 +153,7 @@ def main():
         # if there is a user script
         # adds this to the cloud-init script
         user_script_exec = \
-            'docker exec ose /bin/bash -c \"sh /root/deploy-ose/user-script.sh"'
+            'docker exec ose /bin/bash -c \"sh /rootfs/root/deploy-ose/user-script.sh"'
 
     # get the deploy script
     f = open('resources/deploy-ose.stache', 'r')
