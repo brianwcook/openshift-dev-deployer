@@ -121,7 +121,7 @@ wget https://raw.githubusercontent.com/openshift/origin/master/examples/image-st
 docker exec ose /bin/bash -c "sh /rootfs/root/deploy-ose/import-is.sh"
 
 # get the database tempaltes and install them
-# for f in db-templates/*.json; do cat $f | oc create -n openshift -f -; done
+# wget the db templates https://github.com/openshift/origin/tree/master/examples/db-templates
 
 
 echo "{{user_script_b64}}" > user-script.b64
