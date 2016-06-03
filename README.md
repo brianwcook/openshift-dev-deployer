@@ -14,7 +14,6 @@ Place the AWS config files in $HOME/.aws:
   in $HOME/.aws/credentials
   
     [default]
-    $[default]
     $region = us-west-2
 
 
