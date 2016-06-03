@@ -5,14 +5,17 @@ Prerequisites:
 
 Place the AWS config files in $HOME/.aws:
 
-    $ $HOME/.aws/config
-    $ [default]
-    $ aws_access_key_id = [your key]
-    $ aws_secret_access_key = [your key]
+  in $HOME/.aws/config
 
-    $ # $HOME/.aws/credentials
-    $ [default]
-    $ region = us-west-2
+    [default]
+    aws_access_key_id = [your key]
+    aws_secret_access_key = [your key]
+
+  in $HOME/.aws/credentials
+  
+    [default]
+    $[default]
+    $region = us-west-2
 
 
 Currently the script deploys producction Openshift Enterprise 3.2.  In the future it will be a choice to deploy OSE on RHEL or Origin on CentOS, but this is not implemented yet.  
