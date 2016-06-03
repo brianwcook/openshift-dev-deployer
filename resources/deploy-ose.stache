@@ -114,8 +114,17 @@ git clone git@github.com:brianwcook/connect-registry.git
 
 # setup imagestreams
 cd /root
+
+echo "{{import_is_b64}}" > /root/deploy-ose/import-is.b64
+
+base64 -d /root/deploy-ose/import-is.b64 > /root/deploy-ose/import-is.sh
+
 wget https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json
-docker exec ose /bin/bash -c "sh /rootfs/root/connect-registry/utils/import-is.sh"
+docker exec ose /bin/bash -c "sh /rootfs/root/deploy-ose/import-is.sh"
+
+# get the database tempaltes and install them
+# for f in db-templates/*.json; do cat $f | oc create -n openshift -f -; done
+
 
 echo "{{user_script_b64}}" > user-script.b64
 

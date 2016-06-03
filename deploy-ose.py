@@ -129,6 +129,13 @@ def main():
     user_script_file = ''
     user_script_file = get_user_script_file(cached_deploy_dict['user_script_file'])
 
+    # read import-is.sh
+
+    f = open('resources/import-is.sh', 'r')
+    import_is = f.read()
+    import_is_b64 = base64.b64encode(import_is.encode('utf-8'))
+    f.close
+
     # read optional openshift-config script if it was provided
     if user_script_file != "":
         try:
@@ -149,7 +156,7 @@ def main():
             'docker exec ose /bin/bash -c \"sh /rootfs/root/user-script.sh"'
 
     # get the deploy script
-    f = open('deploy-ose.stache', 'r')
+    f = open('resources/deploy-ose.stache', 'r')
     script_template = f.read()
     f.close
 
@@ -161,7 +168,8 @@ def main():
                    'git_ssh_key': git_ssh_key,
                    'ec2_key': ec2_key,
                    'user_script_exec': user_script_exec,
-                   'user_script_b64': user_script_b64}
+                   'user_script_b64': user_script_b64,
+                   'import_is_b64': import_is_b64}
 
     # create a cache dictionary to write later
     deploy_cache = {'rh_id': rh_id,
@@ -184,7 +192,6 @@ def main():
     f = open(os.environ['HOME'] + '/cloud-init.sh', 'w')
     f.write(script)
     f.close
-
 
     result = subprocess.call(["aws",
                               "ec2",
