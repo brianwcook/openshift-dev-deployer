@@ -1,0 +1,127 @@
+#!/bin/bash
+
+#================
+# OSE 3.2 all in one
+#================
+
+{
+set -x #echo on
+
+# Make sure only root can run our script
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 1>&2
+   exit 1
+fi
+
+echo "{{git_ssh_key}}" > /root/github_rsa
+chmod 600  /root/github_rsa
+mkdir /root/.ssh
+cp /root/github_rsa /root/.ssh/id_rsa
+
+
+subscription-manager register --username {{rh_id}} --password {{rh_password}}
+subscription-manager attach --pool={{reg_pool}}
+subscription-manager repos --enable rhel-7-server-optional-rpms
+subscription-manager repos --enable=rhel-server-rhscl-7-rpms
+subscription-manager repos --enable=rhel-7-server-extras-rpms
+
+yum -y install nano git yum-utils docker scl-utils httpd-tools wget
+
+# setup docker storage
+DEVS="/dev/xvdb" VG="docker-data" docker-storage-setup
+
+# Mount registry storage
+vgcreate registry /dev/xvdc
+lvcreate -l 100%FREE -n data registry
+mkfs.xfs /dev/registry/data
+mkdir -p /opt/openshift-registry/docker/registry
+echo '/dev/registry/data /opt/openshift-registry/docker/registry/  xfs  defaults  0 0 ' |  tee --append /etc/fstab
+mount -a
+
+echo "INSECURE_REGISTRY='--insecure-registry 0.0.0.0/0'" >> /etc/sysconfig/docker
+
+systemctl start docker --ignore-dependencies
+systemctl enable docker.service
+
+# run open shift
+ docker run -d --name "ose" --privileged --pid=host --net=host -v \
+ /:/rootfs:ro -v /var/run:/var/run:rw -v /sys:/sys -v \
+ /var/lib/docker:/var/lib/docker:rw  \
+ -v /var/lib/origin/openshift.local.volumes:/var/lib/origin/openshift.local.volumes \
+ openshift3/ose start \
+ --public-master=$(curl -s  http://169.254.169.254/latest/meta-data/public-hostname)
+
+# setup the registry storage mount permissions:
+chcon -Rt svirt_sandbox_file_t /opt/openshift-registry
+chown -R 1001.root /opt/openshift-registry
+
+
+# wait for openshift to start..
+sleep 15
+
+htpasswd -cb ose-htpasswd admin '{{ose_admin_password}}'
+docker cp ose-htpasswd ose:/root/ose-htpasswd
+
+# copy the oc binary to the ec2 host
+docker cp ose:/usr/bin/oc /usr/bin/oc
+
+#docker exec -it ose bash
+docker exec ose /bin/bash -c \
+   "oc project default; \
+   oadm registry --config=/var/lib/origin/openshift.local.config/master/admin.kubeconfig --service-account=registry --mount-host=/opt/openshift-registry; \
+   oadm policy add-scc-to-user privileged system:serviceaccount:default:registry; \
+   oc policy add-role-to-user system:image-pusher builder; \
+   oc project default; \
+   oc create serviceaccount router -n default; \
+   oadm policy add-scc-to-user privileged system:serviceaccount:default:router; \
+   oadm router router --replicas=1  --service-account=router; \
+   oc expose service docker-registry --hostname r.$(curl -s  http://169.254.169.254/latest/meta-data/public-ipv4).xip.io"
+
+
+# setup htaccess authentication
+# make 'admin' cluster administrator
+
+docker exec ose /bin/bash -c \
+   "oadm policy add-cluster-role-to-user cluster-admin admin; \
+   openshift start --write-config=/var/lib/origin/openshift.local.config; \
+   sed -i 's/    name: anypassword/    name: htpasswd_provider/' /var/lib/origin/openshift.local.config/master/master-config.yaml; \
+   sed -i 's/      kind: AllowAllPasswordIdentityProvider/      kind: HTPasswdPasswordIdentityProvider\n      file: \/root\/ose-htpasswd/'  /var/lib/origin/openshift.local.config/master/master-config.yaml"
+
+sleep 2
+docker stop ose
+sleep 5
+docker start ose
+# wait for ose to start again
+sleep 15
+
+# add the github ssh fingerprint to known_hosts
+touch /root/.ssh/known_hosts
+ssh-keyscan github.com >> /root/.ssh/known_hosts
+chmod 600 /root/.ssh/known_hosts
+
+# login
+/bin/bash -c \
+  "oc login --insecure-skip-tls-verify=true -u admin -p {{ose_admin_password}} localhost"
+
+# until [ -e /root/.kube/config ]; do
+#  oc login --insecure-skip-tls-verify=true -u admin -p {{ose_admin_password}} localhost
+#  sleep 2
+# done
+
+# clone the source down
+cd ~
+git clone git@github.com:brianwcook/connect-registry.git
+
+# setup imagestreams
+cd /root
+wget https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json
+docker exec ose /bin/bash -c "sh /rootfs/root/connect-registry/utils/import-is.sh"
+
+echo "{{user_script_b64}}" > user-script.b64
+
+base64 -d user-script.b64 > user-script.sh
+
+# run optional script
+{{{ user_script_exec}}}
+
+} > ~/cloud-init.out 2>&1
