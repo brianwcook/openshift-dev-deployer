@@ -3,7 +3,7 @@ Deploys an all in one Openshift instance in Amazon EC2 using cloud-init and then
 
 Prerequisites:
 
-1. Python 3 [test on 3.4]
+1. Python 3 [tested on Python 3.4]
 
 To install on RHEL:
 On EC2 [ or anywhere with rhui]:
