@@ -18,7 +18,7 @@ On RHEL registered with subscription manager:
     sudo yum -y install scl-utils-7-rpms  
     rh-python34scl enable rh-python34 bash
 
-1. Place the AWS config files in $HOME/.aws:
+2. Place the AWS config files in $HOME/.aws:
 
   in $HOME/.aws/config
 
