@@ -33,7 +33,7 @@ On RHEL registered with subscription manager:
     $region = us-west-2
 
 
-Currently the script deploys producction Openshift Enterprise 3.2.  In the future it will be a choice to deploy OSE on RHEL or Origin on CentOS, but this is not implemented yet.  
+Currently the script deploys Openshift Enterprise 3.2.  In the future it will be a choice to deploy OSE on RHEL or Origin on CentOS, but this is not implemented yet.  
 
 You need your Red Hat customer user ID and password.
 You also need a pool id to register your RHEL instance.  You can get it from subscription manager on another RHEL server.
