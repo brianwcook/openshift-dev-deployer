@@ -3,7 +3,22 @@ Deploys an all in one Openshift instance in Amazon EC2 using cloud-init and then
 
 Prerequisites:
 
-Place the AWS config files in $HOME/.aws:
+1. Python 3 [test on 3.4]
+
+To install on RHEL:
+On EC2 [ or anywhere with rhui]:
+
+    sudo yum-config-manager --enable rhui-REGION-rhel-server-rhscl
+    sudo yum -y install scl-utils-7-rpms  rh-python34
+    scl enable rh-python34 bash[rerun the deployer]
+
+On RHEL registered with subscription manager: 
+
+    subscription-manager repos --enable=rhel-server-rhscl-7-rpms
+    sudo yum -y install scl-utils-7-rpms  
+    rh-python34scl enable rh-python34 bash
+
+1. Place the AWS config files in $HOME/.aws:
 
   in $HOME/.aws/config
 
