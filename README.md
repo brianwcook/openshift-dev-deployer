@@ -6,7 +6,8 @@ Prerequisites:
 1. Python 3 [tested on Python 3.4]
 
 To install on RHEL:
-On EC2 [ or anywhere with rhui]:
+
+On EC2 [or anywhere with rhui]:
 
     sudo yum-config-manager --enable rhui-REGION-rhel-server-rhscl
     sudo yum -y install scl-utils-7-rpms  rh-python34
