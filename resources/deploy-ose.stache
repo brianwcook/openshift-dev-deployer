@@ -7,6 +7,9 @@
 {
 set -x #echo on
 
+# cloud-init env doesn't seem to have $HOME
+export HOME=/root
+
 # Make sure only root can run our script
 if [[ $EUID -ne 0 ]]; then
    echo "This script must be run as root" 1>&2
@@ -59,6 +62,11 @@ chown -R 1001.root /opt/openshift-registry
 
 # wait for openshift to start..
 sleep 15
+
+# make root on host system admin for openshift
+mkdir /root/.kube
+docker cp ose:/var/lib/origin/openshift.local.config/master/admin.kubeconfig /root/.kube/config
+export KUBECONFIG=/root/.kube/config
 
 htpasswd -cb ose-htpasswd admin '{{ose_admin_password}}'
 docker cp ose-htpasswd ose:/root/ose-htpasswd
