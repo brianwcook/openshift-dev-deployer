@@ -6,7 +6,6 @@ from getpass import getpass
 import json
 import sys
 import base64
-# 'reg_pool': '8a85f9845394d4130153a03459d47983',
 
 
 def get_rh_id(default):
