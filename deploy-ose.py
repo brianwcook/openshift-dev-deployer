@@ -193,36 +193,34 @@ def main():
     f.write(script)
     f.close
 
-    result = subprocess.call(["aws",
-                              "ec2",
-                              "run-instances",
-                              "--image-id",
-                              "ami-775e4f16",
-                              "--instance-type",
-                              "t2.medium",
-                              "--key-name",
-                              ec2_key,
-                              "--security-groups",
-                              "launch-wizard-1",
-                              "--user-data",
-                              script,
-                              # "file://" + os.environ['HOME'] + '/cloud-init.yaml',
-                              "--block-device-mappings",
-                              '''[{\"DeviceName\":\"/dev/sdb\",\"Ebs\":{\"VolumeSize\":50,\"DeleteOnTermination\":true}},{\"DeviceName\":\"/dev/sdc\",\"Ebs\":{\"VolumeSize\":20,\"DeleteOnTermination\":true}}]'''],
-                             stderr=subprocess.STDOUT)
+    json_result = subprocess.check_output(["aws",
+                                           "ec2",
+                                           "run-instances",
+                                           "--image-id",
+                                           "ami-775e4f16",
+                                           "--instance-type",
+                                           "t2.medium",
+                                           "--key-name",
+                                           ec2_key,
+                                           "--security-groups",
+                                           "launch-wizard-1",
+                                           "--user-data",
+                                           script,
+                                           # "file://" + os.environ['HOME'] + '/cloud-init.yaml',
+                                           "--block-device-mappings",
+                                           '''[{\"DeviceName\":\"/dev/sdb\",\"Ebs\":{\"VolumeSize\":50,\"DeleteOnTermination\":true}},{\"DeviceName\":\"/dev/sdc\",\"Ebs\":{\"VolumeSize\":20,\"DeleteOnTermination\":true}}]'''],
+                                          stderr=subprocess.STDOUT)
 
+    print(json_result)  # this was just '0' for success. need stdout.
 
-
-    # print (result)
+    # get the id from json_result and tag the instance with the RH username
+    # that created it
 
     print("")
     print("")
     print("")
     print("Settings cached in " + os.environ['HOME'] + '/.deploy-ose.json')
     print("")
-
-
-
 
 
 if __name__ == "__main__":

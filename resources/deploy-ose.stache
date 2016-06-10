@@ -21,7 +21,7 @@ mkdir /root/deploy-ose
 echo "{{git_ssh_key}}" > /root/deploy-ose/ssh-priv-key
 chmod 600  /root/deploy-ose/ssh-priv-key
 
-
+export ADMIN_PASSWORD={{ose_admin_password}}
 
 subscription-manager register --username {{rh_id}} --password {{rh_password}}
 subscription-manager attach --pool={{reg_pool}}
