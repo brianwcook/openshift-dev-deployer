@@ -21,8 +21,6 @@ mkdir /root/deploy-ose
 echo "{{git_ssh_key}}" > /root/deploy-ose/ssh-priv-key
 chmod 600  /root/deploy-ose/ssh-priv-key
 
-export ADMIN_PASSWORD={{ose_admin_password}}
-
 subscription-manager register --username {{rh_id}} --password {{rh_password}}
 subscription-manager attach --pool={{reg_pool}}
 subscription-manager repos --enable rhel-7-server-optional-rpms
@@ -131,6 +129,10 @@ docker exec ose /bin/bash -c "sh /rootfs/root/deploy-ose/import-is.sh"
 echo "{{user_script_b64}}" > /root/deploy-ose/user-script.b64
 base64 -d /root/deploy-ose/user-script.b64 >  /root/deploy-ose/user-script.sh
 rm -f /root/deploy-ose/user-script.b64
+
+# make admin pwd available to user script as env variable
+# NOT WORKNG :(
+export ADMIN_PASSWORD={{ose_admin_password}}
 
 # run optional script
 # three brackets turns off escaping so quotes are sent properly
