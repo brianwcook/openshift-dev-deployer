@@ -108,7 +108,7 @@ def main():
     ec2_instance_tag = ''
     while not ec2_instance_tag:
         ec2_instance_tag = \
-          get_rh_password(cached_deploy_dict['ec2_instance_tag'])
+          get_ec2_instance_tag(cached_deploy_dict['ec2_instance_tag'])
 
     reg_pool = ''
     while not reg_pool:
