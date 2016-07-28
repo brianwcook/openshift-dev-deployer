@@ -61,10 +61,42 @@ def get_ose_admin_password(default):
 
 
 # Retrieve an EC2 instance tag.
-def get_ec2_instance_tag(default):
-    ec2_instance_tag = getpass('EC2 instance tag [cached EC2 instance tag]:')
-    ec2_instance_tag = ec2_instance_tag or default
-    return ec2_instance_tag
+def get_ec2_instance_tags(default):
+    # If there are any tags in the cache,
+    # print them and then ask if the user wants to use them
+    print("start get_Ec2_instance_tags")
+    if any(default):
+        print("\n\nCached Tags:\n")
+        for k, v in default.items():
+            print(k, v)
+            print("\n")
+            user_input = "something"    # get the loop started
+            print("test1")
+            x = user_input == 'yes' or user_input == 'no' or user_input == ""
+            print(x)
+            while not (user_input == 'yes' or
+                       user_input == 'no' or
+                       user_input == ""):
+
+                user_input = input('Use these tags [yes]:')
+                print(user_input.lower())
+                if user_input.lower() == 'yes' or user_input.lower() == '':
+                    # use cached tags
+                    return default
+
+    # get new tags
+    print('Enter blank "key" to quit.')
+    tags_dict = {}
+    key = 'something'    # set key to something to start the loop
+    while not key == "":
+        key = input('key: ')
+        if key == "":
+            return tags_dict
+        value = input('value: ')
+        if value == "":
+            print("Value cannot be null.")
+        else:
+            tags_dict[key] = value
 
 
 def main():
@@ -94,7 +126,7 @@ def main():
                               'reg_pool': '',
                               'ec2_key': '',
                               'git_ssh_file': '',
-                              'ec2_instance_tag': '',
+                              'ec2_instance_tags': {},
                               'ose_admin_password': '',
                               'user_script_file': ""}
 
@@ -107,10 +139,10 @@ def main():
         rh_password = \
           get_rh_password(cached_deploy_dict['rh_password'])
 
-    ec2_instance_tag = ''
-    while not ec2_instance_tag:
-        ec2_instance_tag = \
-          get_ec2_instance_tag(cached_deploy_dict['ec2_instance_tag'])
+    ec2_instance_tags = {}
+    while not any(ec2_instance_tags):
+        ec2_instance_tags = \
+          get_ec2_instance_tags(cached_deploy_dict['ec2_instance_tags'])
 
     reg_pool = ''
     while not reg_pool:
@@ -192,7 +224,7 @@ def main():
                     'ec2_key': ec2_key,
                     'ose_admin_password': ose_admin_password,
                     'rh_password': rh_password,
-                    'ec2_instance_tag': ec2_instance_tag,
+                    'ec2_instance_tags': ec2_instance_tags,
                     'user_script_file': user_script_file}
 
     # write the settings to cache file
@@ -208,10 +240,11 @@ def main():
     f.write(script)
     f.close
 
+    print(ec2_instance_tags)
     json_result = subprocess.check_output(["aws",
                                            "ec2",
                                            "run-instances",
-                                           "--output",
+                                       "--output",
                                            "json",
                                            "--image-id",
                                            "ami-775e4f16",
