@@ -32,7 +32,9 @@ def get_ec2_key(default):
 
 
 def get_git_ssh_file(default):
-    git_ssh_file = input('ssh key for source repo  [' +
+    print('SSH key file for source code repo access.  This is an optional')
+    print('key to be used by a user config script ')
+    git_ssh_file = input('enter /dev/null if no key is needed. [' +
                          default + ']:')
     git_ssh_file = git_ssh_file or default
     return git_ssh_file
