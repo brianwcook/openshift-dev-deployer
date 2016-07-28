@@ -266,6 +266,11 @@ def main():
                                            '''[{\"DeviceName\":\"/dev/sdb\",\"Ebs\":{\"VolumeSize\":50,\"DeleteOnTermination\":true}},{\"DeviceName\":\"/dev/sdc\",\"Ebs\":{\"VolumeSize\":20,\"DeleteOnTermination\":true}}]'''],
                                           stderr=subprocess.STDOUT)
 
+    json_string = json_result.decode("utf-8")
+    result_dict = json.loads(json_string)
+    instance_id = result_dict['Instances'][0]['InstanceId']
+    print(instance_id)
+
     create_instance_tag = subprocess.check_output(["aws",
                                                    "ec2",
                                                    "create-tags",
@@ -274,11 +279,11 @@ def main():
                                                    "--resources",
                                                    instance_id,
                                                    "--tags",
-                                                   ec2_tags,]
+                                                   ec2_tags],
                                                   stderr=subprocess.STDOUT)
 
 
-    json_string = json_result.decode("utf-8")
+
     print(json_string)
 
     # get the id from json_result and tag the instance with the RH username
