@@ -60,6 +60,13 @@ def get_ose_admin_password(default):
     return ose_admin_password
 
 
+# Retrieve an EC2 instance tag.
+def get_ec2_instance_tag(default):
+    ec2_instance_tag = getpass('EC2 instance tag [cached EC2 instance tag]:')
+    ec2_instance_tag = ec2_instance_tag or default
+    return ec2_instance_tag
+
+
 def main():
     # deploys all in one OSE on ec2
     # you can see what was passed as user-data to an ec2 instance by doing
@@ -87,6 +94,7 @@ def main():
                               'reg_pool': '',
                               'ec2_key': '',
                               'git_ssh_file': '',
+                              'ec2_instance_tag': '',
                               'ose_admin_password': '',
                               'user_script_file': ""}
 
@@ -98,6 +106,11 @@ def main():
     while not rh_password:
         rh_password = \
           get_rh_password(cached_deploy_dict['rh_password'])
+
+    ec2_instance_tag = ''
+    while not ec2_instance_tag:
+        ec2_instance_tag = \
+          get_ec2_instance_tag(cached_deploy_dict['ec2_instance_tag'])
 
     reg_pool = ''
     while not reg_pool:
@@ -179,6 +192,7 @@ def main():
                     'ec2_key': ec2_key,
                     'ose_admin_password': ose_admin_password,
                     'rh_password': rh_password,
+                    'ec2_instance_tag': ec2_instance_tag,
                     'user_script_file': user_script_file}
 
     # write the settings to cache file
