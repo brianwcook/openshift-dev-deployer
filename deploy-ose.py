@@ -72,8 +72,6 @@ def get_ec2_instance_tags(default):
             print(k, v)
             print("\n")
             user_input = "something"    # get the loop started
-            x = user_input == 'yes' or user_input == 'no' or user_input == ""
-            print(x)
             while not (user_input == 'yes' or
                        user_input == 'no' or
                        user_input == ""):
