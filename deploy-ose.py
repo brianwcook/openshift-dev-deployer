@@ -66,14 +66,12 @@ def get_ose_admin_password(default):
 def get_ec2_instance_tags(default):
     # If there are any tags in the cache,
     # print them and then ask if the user wants to use them
-    print("start get_Ec2_instance_tags")
     if any(default):
-        print("\n\nCached Tags:\n")
+        print("\nCached Tags:\n")
         for k, v in default.items():
             print(k, v)
             print("\n")
             user_input = "something"    # get the loop started
-            print("test1")
             x = user_input == 'yes' or user_input == 'no' or user_input == ""
             print(x)
             while not (user_input == 'yes' or
