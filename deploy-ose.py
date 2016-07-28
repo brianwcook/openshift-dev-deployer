@@ -195,6 +195,8 @@ def main():
     json_result = subprocess.check_output(["aws",
                                            "ec2",
                                            "run-instances",
+                                           "--output",
+                                           "json",
                                            "--image-id",
                                            "ami-775e4f16",
                                            "--instance-type",
@@ -210,7 +212,8 @@ def main():
                                            '''[{\"DeviceName\":\"/dev/sdb\",\"Ebs\":{\"VolumeSize\":50,\"DeleteOnTermination\":true}},{\"DeviceName\":\"/dev/sdc\",\"Ebs\":{\"VolumeSize\":20,\"DeleteOnTermination\":true}}]'''],
                                           stderr=subprocess.STDOUT)
 
-    print(json_result)  # this was just '0' for success. need stdout.
+    json_string = json_result.decode("utf-8")
+    print(json_string)
 
     # get the id from json_result and tag the instance with the RH username
     # that created it
