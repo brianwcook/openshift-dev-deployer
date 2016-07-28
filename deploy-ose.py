@@ -144,6 +144,11 @@ def main():
         ec2_instance_tags = \
           get_ec2_instance_tags(cached_deploy_dict['ec2_instance_tags'])
 
+    ec2_tags = 'Key="created_by",Value="openshift_dev_deployer"'
+    for k, v in ec2_tags.items():
+        ec2_tags += ' Key="' + k + '",Value="' + v + '"'
+    print(ec2_tags)
+
     reg_pool = ''
     while not reg_pool:
         reg_pool = \
