@@ -244,7 +244,7 @@ def main():
     json_result = subprocess.check_output(["aws",
                                            "ec2",
                                            "run-instances",
-                                       "--output",
+                                           "--output",
                                            "json",
                                            "--image-id",
                                            "ami-775e4f16",
