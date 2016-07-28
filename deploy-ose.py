@@ -279,7 +279,8 @@ def main():
                                                    "--resources",
                                                    instance_id,
                                                    "--tags",
-                                                   ec2_tags],
+                                                   # ec2_tags],
+                                                   'Key="created_by",Value="openshift_dev_deployer"'],
                                                   stderr=subprocess.STDOUT)
 
 
