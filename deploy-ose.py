@@ -64,23 +64,25 @@ def get_ose_admin_password(default):
 
 # Retrieve an EC2 instance tag.
 def get_ec2_instance_tags(default):
+    print(default)
     # If there are any tags in the cache,
     # print them and then ask if the user wants to use them
     if any(default):
         print("\nCached Tags:\n")
         for k, v in default.items():
-            print(k, v)
-            print("\n")
-            user_input = "something"    # get the loop started
-            while not (user_input == 'yes' or
-                       user_input == 'no' or
-                       user_input == ""):
+            print(k, '=', v)
 
-                user_input = input('Use these tags [yes]:')
-                print(user_input.lower())
-                if user_input.lower() == 'yes' or user_input.lower() == '':
-                    # use cached tags
-                    return default
+        print("\n")
+        user_input = "something"    # get the loop started
+        while not (user_input == 'yes' or
+                   user_input == 'no' or
+                   user_input == ""):
+
+            user_input = input('Use these tags [yes]:')
+            print(user_input.lower())
+            if user_input.lower() == 'yes' or user_input.lower() == '':
+                # use cached tags
+                return default
 
     # get new tags
     print('Enter blank "key" to quit.')
