@@ -11,16 +11,17 @@ On EC2 [or anywhere with rhui]:
 
     sudo yum-config-manager --enable rhui-REGION-rhel-server-rhscl
     sudo yum -y install scl-utils-7-rpms  rh-python34
-    scl enable rh-python34 bash[rerun the deployer]
+    scl enable rh-python34 bash
 
 On RHEL registered with subscription manager: 
 
     subscription-manager repos --enable=rhel-server-rhscl-7-rpms
     sudo yum -y install scl-utils-7-rpms  
-    rh-python34scl enable rh-python34 bash
+    scl enable rh-python34 bash
 
-2. Install Amazon EC2 install with pip
-   pip install awscli
+2. Install Boto3 Library for AWS with pip:
+
+    pip install boto3
 
 
 3. Place the AWS config files in $HOME/.aws:
