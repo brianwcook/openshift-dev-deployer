@@ -27,7 +27,8 @@ subscription-manager repos --enable rhel-7-server-optional-rpms
 subscription-manager repos --enable=rhel-server-rhscl-7-rpms
 subscription-manager repos --enable=rhel-7-server-extras-rpms
 
-yum -y install nano git yum-utils docker scl-utils httpd-tools wget svn
+yum -y install nano git yum-utils scl-utils httpd-tools wget svn
+yum -y install docker-1.9.1-40.el7.x86_64
 
 # setup docker storage
 DEVS="/dev/xvdb" VG="docker-data" docker-storage-setup
