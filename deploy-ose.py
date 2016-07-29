@@ -8,6 +8,8 @@ from getpass import getpass
 import json
 import sys
 import base64
+import boto3
+import time
 
 
 def get_rh_id(default):
@@ -144,10 +146,10 @@ def main():
         ec2_instance_tags = \
           get_ec2_instance_tags(cached_deploy_dict['ec2_instance_tags'])
 
-    ec2_tags = 'Key="created_by",Value="openshift_dev_deployer"'
-    for k, v in ec2_instance_tags.items():
-        ec2_tags += ' Key="' + k + '",Value="' + v + '"'
-    print(ec2_tags)
+    #ec2_tags = 'Key="created_by",Value="openshift_dev_deployer"'
+    #for k, v in ec2_instance_tags.items():
+    #    ec2_tags += ' Key="' + k + '",Value="' + v + '"'
+    #print(ec2_tags)
 
     reg_pool = ''
     while not reg_pool:
@@ -245,50 +247,55 @@ def main():
     f.write(script)
     f.close
 
-    print(ec2_instance_tags)
-    json_result = subprocess.check_output(["aws",
-                                           "ec2",
-                                           "run-instances",
-                                           "--output",
-                                           "json",
-                                           "--image-id",
-                                           "ami-775e4f16",
-                                           "--instance-type",
-                                           "t2.medium",
-                                           "--key-name",
-                                           ec2_key,
-                                           "--security-groups",
-                                           "launch-wizard-1",
-                                           "--user-data",
-                                           script,
-                                           # "file://" + os.environ['HOME'] + '/cloud-init.yaml',
-                                           "--block-device-mappings",
-                                           '''[{\"DeviceName\":\"/dev/sdb\",\"Ebs\":{\"VolumeSize\":50,\"DeleteOnTermination\":true}},{\"DeviceName\":\"/dev/sdc\",\"Ebs\":{\"VolumeSize\":20,\"DeleteOnTermination\":true}}]'''],
-                                          stderr=subprocess.STDOUT)
+    # print(ec2_instance_tags)
 
-    json_string = json_result.decode("utf-8")
-    result_dict = json.loads(json_string)
-    instance_id = result_dict['Instances'][0]['InstanceId']
-    print(instance_id)
+    # Boto 3
+    ec2 = boto3.resource('ec2')
 
-    create_instance_tag = subprocess.check_output(["aws",
-                                                   "ec2",
-                                                   "create-tags",
-                                                   "--output",
-                                                   "json",
-                                                   "--resources",
-                                                   instance_id,
-                                                   "--tags",
-                                                   # ec2_tags],
-                                                   'Key="created_by",Value="openshift_dev_deployer"'],
-                                                  stderr=subprocess.STDOUT)
+    instances = ec2.create_instances(
+        ImageId='ami-775e4f16',
+        MinCount=1,
+        MaxCount=1,
+        KeyName=ec2_key,
+        SecurityGroups=[
+            'launch-wizard-1',
+        ],
+        UserData=script,
+        InstanceType='t2.medium',
+        BlockDeviceMappings=[
+            {
+                'DeviceName': '/dev/sdb',
+                'Ebs': {
+                    'VolumeSize': 50,
+                    'DeleteOnTermination': True,
+                  },
+                'Ebs': {
+                    'VolumeSize': 20,
+                    'DeleteOnTermination': True,
+                },
+            },
+        ],
+    )
+
+    print("Created EC2 instance ID " + instances[0].instance_id)
+
+    time.sleep(5)
+
+    for k, v in ec2_instance_tags.items():
+        response = ec2.create_tags(
+                                   Resources=[instances[0].instance_id],
+                                   Tags=[{
+                                          'Key': k, 'Value': v
+                                        }])
+
+        print(response)
 
 
+# out = ec2.Tag(, k, v)
+#        print(out)
 
-    print(json_string)
-
-    # get the id from json_result and tag the instance with the RH username
-    # that created it
+    # TODO get the id from json_result and tag the instance with the RH
+    # username that created it
 
     print("")
     print("")
