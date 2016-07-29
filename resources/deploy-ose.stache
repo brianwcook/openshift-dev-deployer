@@ -43,7 +43,9 @@ mount -a
 
 echo "INSECURE_REGISTRY='--insecure-registry 0.0.0.0/0'" >> /etc/sysconfig/docker
 
-systemctl start rhel-push-plugin
+# https://bugzilla.redhat.com/show_bug.cgi?id=1330290
+pvscan --cache
+
 systemctl start docker --ignore-dependencies
 systemctl enable docker.service
 

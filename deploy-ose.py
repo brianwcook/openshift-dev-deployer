@@ -269,6 +269,7 @@ def main():
                     'VolumeSize': 50,
                     'DeleteOnTermination': True,
                   },
+                'DeviceName': '/dev/sdc',
                 'Ebs': {
                     'VolumeSize': 20,
                     'DeleteOnTermination': True,
