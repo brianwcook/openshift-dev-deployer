@@ -40,9 +40,10 @@ On RHEL registered with subscription manager:
 
 Currently the script deploys Openshift Enterprise 3.2.  In the future it will be a choice to deploy OSE on RHEL or Origin on CentOS, but this is not implemented yet.  
 
-You need your Red Hat customer user ID and password.
-You also need a pool id to register your RHEL instance.  You can get it from subscription manager on another RHEL server.
+You need your Red Hat customer portal user ID and password to register with subscription manager.
+You also need a pool id to register your RHEL instance.  You can get one from subscription manager on a registered RHEL server by doing "subscription-manager" list --all --available.  Free developer subscriptions work fine.
 
-The script will configure Openshift all-in-one running containerized in EC2.  The point is to be able to provision dev environments quickly.  You can run a user provided script, this script will run INSIDE the Openshift container which means it runs with cluster admin privileges.  You should use this script to configure your Openshift applications.
+The script will configure Openshift all-in-one running containerized in EC2.  The point is to be able to provision dev environments quickly.  You can run a user provided script, this script will as cluster administrator.  You should use this script to configure your Openshift applications.  If you provided a source code repo key, it will be available as /root/deploy-ose/ssh-priv-key.
 
-The script will cache your settings in your home directory to make it easy to run repeatedly.
+The script will cache your settings in your home directory to make it easy to run repeatedly.  Your passwords will be stored in clear  text but the file permissions will be set to 600.
+
