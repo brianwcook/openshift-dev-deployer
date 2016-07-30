@@ -5,35 +5,37 @@ Prerequisites:
 
 1. Python 3 [tested on Python 3.4]
 
-To install on RHEL:
+- To install on RHEL:
 
-On EC2 [or anywhere with rhui]:
+  - On EC2 [or anywhere with rhui]:
 
     sudo yum-config-manager --enable rhui-REGION-rhel-server-rhscl
     sudo yum -y install scl-utils-7-rpms  rh-python34
     scl enable rh-python34 bash
 
-On RHEL registered with subscription manager: 
+  - On RHEL registered with subscription manager: 
 
+    ```
     subscription-manager repos --enable=rhel-server-rhscl-7-rpms
     sudo yum -y install scl-utils-7-rpms  
     scl enable rh-python34 bash
+    ```
 
-2. Install Boto3 Library for AWS with pip:
+- Install Boto3 Library for AWS with pip:
 ```
 pip install boto3
 ```
 
-3. Place the AWS config files in $HOME/.aws:
+- Place the AWS config files in $HOME/.aws:
 
-in $HOME/.aws/config
+  - in $HOME/.aws/config
 ```
 [default]
 aws_access_key_id = [your key]
 aws_secret_access_key = [your key]
 ```
 
-in $HOME/.aws/credentials
+  - in $HOME/.aws/credentials
   
 ```
 [default]
