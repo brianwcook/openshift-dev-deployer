@@ -20,22 +20,25 @@ On RHEL registered with subscription manager:
     scl enable rh-python34 bash
 
 2. Install Boto3 Library for AWS with pip:
-
-    pip install boto3
-
+'''
+pip install boto3
+'''
 
 3. Place the AWS config files in $HOME/.aws:
 
-  in $HOME/.aws/config
+in $HOME/.aws/config
+'''
+[default]
+aws_access_key_id = [your key]
+aws_secret_access_key = [your key]
+'''
 
-    [default]
-    aws_access_key_id = [your key]
-    aws_secret_access_key = [your key]
-
-  in $HOME/.aws/credentials
+in $HOME/.aws/credentials
   
-    [default]
-    $region = us-west-2
+'''
+[default]
+$region = us-west-2
+'''
 
 
 Currently the script deploys Openshift Enterprise 3.2.  In the future it will be a choice to deploy OSE on RHEL or Origin on CentOS, but this is not implemented yet.  
