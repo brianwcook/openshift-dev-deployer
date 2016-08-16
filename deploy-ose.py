@@ -39,6 +39,15 @@ def get_aws_profile_name(default):
     return aws_profile_name
 
 
+def get_aws_subnet_id(default):
+    aws_subnet_id = input('AWS Subnet ID \n' +
+                          "(Most of the time this will 'default')" +
+                          '[' + default + ']:')
+
+    aws_subnet_id = aws_subnet_id or default
+    return aws_subnet_id
+
+
 def get_git_ssh_file(default):
     print('SSH key file for source code repo access.  This is an optional')
     print('key to be used by a user config script ')
@@ -138,7 +147,8 @@ def main():
                               'ec2_instance_tags': {},
                               'ose_admin_password': '',
                               'user_script_file': "",
-                              'aws_profile_name': ""}
+                              'aws_profile_name': "",
+                              'aws_subnet_id': ""}
 
     rh_id = ''
     while not rh_id:
@@ -167,6 +177,10 @@ def main():
     ec2_key = ''
     while not ec2_key:
         ec2_key = get_ec2_key(cached_deploy_dict['ec2_key'])
+
+    aws_subnet_id = ''
+    while not aws_subnet_id:
+        aws_subnet_id = get_aws_subnet_id(cached_deploy_dict['aws_subnet_id'])
 
     ose_admin_password = ''
     while not ose_admin_password:
@@ -233,6 +247,10 @@ def main():
                    'user_script_b64': user_script_b64,
                    'import_is_b64': import_is_b64}
 
+    aws_subnet_id_json = ""
+    if aws_subnet_id.lower() != 'default':
+        aws_subnet_id_json = '"aws_subnet_id":"' + aws_subnet_id + '"'
+
     # create a cache dictionary to write later
     deploy_cache = {'rh_id': rh_id,
                     'reg_pool': reg_pool,
@@ -242,7 +260,8 @@ def main():
                     'rh_password': rh_password,
                     'ec2_instance_tags': ec2_instance_tags,
                     'user_script_file': user_script_file,
-                    'aws_profile_name': aws_profile_name}
+                    'aws_profile_name': aws_profile_name,
+                    'aws_subnet_id': aws_subnet_id}
 
     # write the settings to cache file
     f = open(os.environ['HOME'] + '/.deploy-ose.json', 'w')
@@ -264,6 +283,7 @@ def main():
     ec2 = session.resource('ec2')
 
     instances = ec2.create_instances(
+        aws_subnet_id_json,
         ImageId='ami-775e4f16',
         MinCount=1,
         MaxCount=1,
