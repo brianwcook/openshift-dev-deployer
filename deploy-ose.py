@@ -3,7 +3,6 @@
 # import requests
 import pystache
 import os
-import subprocess
 from getpass import getpass
 import json
 import sys
@@ -33,6 +32,13 @@ def get_ec2_key(default):
     return ec2_key
 
 
+def get_aws_profile_name(default):
+    aws_profile_name = input('AWS profile name [' +
+                             default + ']:')
+    aws_profile_name = aws_profile_name or default
+    return aws_profile_name
+
+
 def get_git_ssh_file(default):
     print('SSH key file for source code repo access.  This is an optional')
     print('key to be used by a user config script ')
@@ -43,7 +49,8 @@ def get_git_ssh_file(default):
 
 
 def get_user_script_file(default):
-    user_script_file = input('Optional script to run inside openshift container.' +
+    user_script_file = input('Optional script to run inside openshift ' +
+                             'container.' +
                              '\nUse this to configure apps, policies, etc. [' +
                              default + ']:')
     user_script_file = user_script_file or default
@@ -130,7 +137,8 @@ def main():
                               'git_ssh_file': '',
                               'ec2_instance_tags': {},
                               'ose_admin_password': '',
-                              'user_script_file': ""}
+                              'user_script_file': "",
+                              'aws_profile_name': ""}
 
     rh_id = ''
     while not rh_id:
@@ -141,20 +149,20 @@ def main():
         rh_password = \
           get_rh_password(cached_deploy_dict['rh_password'])
 
-    ec2_instance_tags = {}
-    while not any(ec2_instance_tags):
-        ec2_instance_tags = \
-          get_ec2_instance_tags(cached_deploy_dict['ec2_instance_tags'])
-
-    #ec2_tags = 'Key="created_by",Value="openshift_dev_deployer"'
-    #for k, v in ec2_instance_tags.items():
-    #    ec2_tags += ' Key="' + k + '",Value="' + v + '"'
-    #print(ec2_tags)
-
     reg_pool = ''
     while not reg_pool:
         reg_pool = \
           get_reg_pool(cached_deploy_dict['reg_pool'])
+
+    aws_profile_name = ''
+    while not aws_profile_name:
+        aws_profile_name = get_aws_profile_name(
+            cached_deploy_dict['aws_profile_name'])
+
+    ec2_instance_tags = {}
+    while not any(ec2_instance_tags):
+        ec2_instance_tags = \
+          get_ec2_instance_tags(cached_deploy_dict['ec2_instance_tags'])
 
     ec2_key = ''
     while not ec2_key:
@@ -180,7 +188,8 @@ def main():
 
     # No while because this parameter is optional.
     user_script_file = ''
-    user_script_file = get_user_script_file(cached_deploy_dict['user_script_file'])
+    user_script_file = get_user_script_file(
+        cached_deploy_dict['user_script_file'])
 
     # read import-is.sh
 
@@ -196,8 +205,8 @@ def main():
             user_script = f.read()
             user_script_b64 = base64.b64encode(user_script.encode('utf-8'))
             f.close
-        except e:
-            # print("Error opening user script file")
+        except:
+            print("Error opening user script file")
             sys.exit(2)
 
     if user_script_b64 == "":
@@ -232,7 +241,8 @@ def main():
                     'ose_admin_password': ose_admin_password,
                     'rh_password': rh_password,
                     'ec2_instance_tags': ec2_instance_tags,
-                    'user_script_file': user_script_file}
+                    'user_script_file': user_script_file,
+                    'aws_profile_name': aws_profile_name}
 
     # write the settings to cache file
     f = open(os.environ['HOME'] + '/.deploy-ose.json', 'w')
@@ -250,7 +260,8 @@ def main():
     # print(ec2_instance_tags)
 
     # Boto 3
-    ec2 = boto3.resource('ec2')
+    session = boto3.session.Session(profile_name=aws_profile_name)
+    ec2 = session.resource('ec2')
 
     instances = ec2.create_instances(
         ImageId='ami-775e4f16',
@@ -258,7 +269,7 @@ def main():
         MaxCount=1,
         KeyName=ec2_key,
         SecurityGroups=[
-            'launch-wizard-1',
+            'openshift-dev-deployer',
         ],
         UserData=script,
         InstanceType='t2.medium',
