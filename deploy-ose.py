@@ -149,13 +149,15 @@ def create_ec2_instance(ec2, ec2_instance_tags,
                     'Ebs': {
                         'VolumeSize': 50,
                         'DeleteOnTermination': True,
-                      },
+                      }
+                },
+                {
                     'DeviceName': '/dev/sdc',
                     'Ebs': {
                         'VolumeSize': 20,
                         'DeleteOnTermination': True,
-                    },
-                },
+                    }
+                }
             ],
         )
     else:
