@@ -48,6 +48,13 @@ def get_aws_subnet_id(default):
     return aws_subnet_id
 
 
+def get_aws_security_group_id(default):
+    aws_security_group_id = input('AWS profile name [' +
+                                  default + ']:')
+    aws_security_group_id = aws_security_group_id or default
+    return aws_security_group_id
+
+
 def get_git_ssh_file(default):
     print('SSH key file for source code repo access.  This is an optional')
     print('key to be used by a user config script ')
@@ -71,6 +78,14 @@ def get_rh_password(default):
                           '[cached password]:')
     rh_password = rh_password or default
     return rh_password
+
+
+def get_ose_public_master(default):
+    ose_public_master = input('Openshift public master hostname' +
+                              '[use xip.io]:')
+
+    ose_public_master = ose_public_master or default
+    return ose_public_master
 
 
 def get_ose_admin_password(default):
@@ -115,6 +130,77 @@ def get_ec2_instance_tags(default):
             print("Value cannot be null.")
         else:
             tags_dict[key] = value
+
+
+def create_ec2_instance(ec2, ec2_instance_tags,
+                        ec2_key, script, aws_security_group_id, aws_subnet_id):
+    if aws_subnet_id is None:
+        #
+        instances = ec2.create_instances(
+            ImageId='ami-775e4f16',
+            MinCount=1,
+            MaxCount=1,
+            KeyName=ec2_key,
+            UserData=script,
+            InstanceType='t2.medium',
+            BlockDeviceMappings=[
+                {
+                    'DeviceName': '/dev/sdb',
+                    'Ebs': {
+                        'VolumeSize': 50,
+                        'DeleteOnTermination': True,
+                      },
+                    'DeviceName': '/dev/sdc',
+                    'Ebs': {
+                        'VolumeSize': 20,
+                        'DeleteOnTermination': True,
+                    },
+                },
+            ],
+        )
+    else:
+            #
+            instances = ec2.create_instances(
+                SubnetId=aws_subnet_id,
+                ImageId='ami-775e4f16',
+                MinCount=1,
+                MaxCount=1,
+                KeyName=ec2_key,
+                SecurityGroupIds=[
+                    aws_security_group_id,
+                    ],
+                UserData=script,
+                InstanceType='t2.medium',
+                BlockDeviceMappings=[
+                    {
+                        'DeviceName': '/dev/sdb',
+                        'Ebs': {
+                            'VolumeSize': 50,
+                            'DeleteOnTermination': True,
+                          }
+                    },
+                    {
+                        'DeviceName': '/dev/sdc',
+                        'Ebs': {
+                            'VolumeSize': 20,
+                            'DeleteOnTermination': True,
+                        }
+                    }
+                ],
+            )
+
+    print("Created EC2 instance ID " + instances[0].instance_id)
+
+    time.sleep(5)
+
+    for k, v in ec2_instance_tags.items():
+        response = ec2.create_tags(
+                                   Resources=[instances[0].instance_id],
+                                   Tags=[{
+                                          'Key': k, 'Value': v
+                                        }])
+
+        print(response)
 
 
 def main():
@@ -182,6 +268,17 @@ def main():
     while not aws_subnet_id:
         aws_subnet_id = get_aws_subnet_id(cached_deploy_dict['aws_subnet_id'])
 
+    if aws_subnet_id.lower() != "default":
+        aws_security_group_id = ''
+        while not aws_security_group_id:
+            aws_profile_name = aws_security_group_id(
+                cached_deploy_dict['aws_security_group_id'])
+
+    ose_public_master = ''
+    while not ose_public_master:
+        ose_public_master = \
+          get_ose_public_master('xip')
+
     ose_admin_password = ''
     while not ose_admin_password:
         ose_admin_password = \
@@ -236,6 +333,10 @@ def main():
     script_template = f.read()
     f.close
 
+    if ose_public_master == 'xip':
+        ose_public_master = \
+          '$(curl -s  http://169.254.169.254/latest/meta-data/public-hostname)'
+
     # dict of values that are passed to pystache for substitution
     # in deploy-ose.stache
     deploy_dict = {'rh_id': rh_id,
@@ -245,11 +346,8 @@ def main():
                    'ec2_key': ec2_key,
                    'user_script_exec': user_script_exec,
                    'user_script_b64': user_script_b64,
-                   'import_is_b64': import_is_b64}
-
-    aws_subnet_id_json = ""
-    if aws_subnet_id.lower() != 'default':
-        aws_subnet_id_json = '"aws_subnet_id":"' + aws_subnet_id + '"'
+                   'import_is_b64': import_is_b64,
+                   'ose_public_master': ose_public_master}
 
     # create a cache dictionary to write later
     deploy_cache = {'rh_id': rh_id,
@@ -282,46 +380,22 @@ def main():
     session = boto3.session.Session(profile_name=aws_profile_name)
     ec2 = session.resource('ec2')
 
-    instances = ec2.create_instances(
-        aws_subnet_id_json,
-        ImageId='ami-775e4f16',
-        MinCount=1,
-        MaxCount=1,
-        KeyName=ec2_key,
-        SecurityGroups=[
-            'openshift-dev-deployer',
-        ],
-        UserData=script,
-        InstanceType='t2.medium',
-        BlockDeviceMappings=[
-            {
-                'DeviceName': '/dev/sdb',
-                'Ebs': {
-                    'VolumeSize': 50,
-                    'DeleteOnTermination': True,
-                  },
-                'DeviceName': '/dev/sdc',
-                'Ebs': {
-                    'VolumeSize': 20,
-                    'DeleteOnTermination': True,
-                },
-            },
-        ],
-    )
-
-    print("Created EC2 instance ID " + instances[0].instance_id)
-
-    time.sleep(5)
-
-    for k, v in ec2_instance_tags.items():
-        response = ec2.create_tags(
-                                   Resources=[instances[0].instance_id],
-                                   Tags=[{
-                                          'Key': k, 'Value': v
-                                        }])
-
-        print(response)
-
+# create_ec2_instance(ec2, ec2_instance_tags,
+#                        ec2_key, script, security_group_id, aws_subnet_id):
+    if aws_subnet_id == 'default':
+        create_ec2_instance(ec2,
+                            ec2_instance_tags,
+                            ec2_key,
+                            script,
+                            None,
+                            None)
+    else:
+        create_ec2_instance(ec2,
+                            ec2_instance_tags,
+                            ec2_key,
+                            script,
+                            aws_security_group_id,
+                            aws_subnet_id)
 
 # out = ec2.Tag(, k, v)
 #        print(out)

@@ -55,7 +55,7 @@ systemctl enable docker.service
  /var/lib/docker:/var/lib/docker:rw  \
  -v /var/lib/origin/openshift.local.volumes:/var/lib/origin/openshift.local.volumes \
  openshift3/ose start \
- --public-master=$(curl -s  http://169.254.169.254/latest/meta-data/public-hostname)
+ --public-master={{ose_public_master}}
 
 # setup the registry storage mount permissions:
 chcon -Rt svirt_sandbox_file_t /opt/openshift-registry
