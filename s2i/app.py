@@ -221,12 +221,14 @@ def main():
     f.close()
 
     try:
-        f = open(os.environ['HOME'] + '/.deploy-ose.json', 'r')
+        f = open(os.environ['HOME'] + '/.osdd/deploy-ose.json', 'r')
         cached_deploy_json = f.read()
         f.close
         cached_deploy_dict = json.loads(cached_deploy_json)
+        print("Cache file loaded.")
 
     except:
+        print("No cache file found.")
         cached_deploy_dict = {'rh_id': '',
                               'rh_password': '',
                               'reg_pool': '',
@@ -364,12 +366,12 @@ def main():
                     'aws_subnet_id': aws_subnet_id}
 
     # write the settings to cache file
-    f = open(os.environ['HOME'] + '/.deploy-ose.json', 'w')
+    f = open(os.environ['HOME'] + '/.osdd/deploy-ose.json', 'w')
     f.write(json.dumps(deploy_cache))
     f.close
 
     # secure the cache file as it contains passwords
-    os.chmod(os.environ['HOME'] + '/.deploy-ose.json', 0o600)
+    os.chmod(os.environ['HOME'] + '/.osdd/deploy-ose.json', 0o600)
 
     script = pystache.render(script_template, deploy_dict)
     f = open(os.environ['HOME'] + '/cloud-init.sh', 'w')
@@ -408,7 +410,8 @@ def main():
     print("")
     print("")
     print("")
-    print("Settings cached in " + os.environ['HOME'] + '/.deploy-ose.json')
+    print("Settings cached in " + os.environ['HOME'] +
+          '/.osdd/deploy-ose.json')
     print("")
 
 
