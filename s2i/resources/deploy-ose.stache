@@ -1,8 +1,5 @@
 #!/bin/bash
-
-#================
 # OSE 3.2 all in one
-#================
 
 {
 set -x #echo on
@@ -49,29 +46,51 @@ pvscan --cache
 systemctl start docker --ignore-dependencies
 systemctl enable docker.service
 
-# run open shift
+# create openshift configs
+mkdir /root/openshift-config
+chcon -Rt svirt_sandbox_file_t /root/openshift-config
+docker run --rm -v /root/openshift-config:/openshift.local.config \
+  --entrypoint /usr/bin/openshift \
+  -t openshift3/ose start \
+  --master=localhost \
+  --public-master={{ose_public_master}} \
+  --write-config=/openshift.local.config
+
+
+htpasswd -cb /root/openshift-config/ose-htpasswd admin '{{ose_admin_password}}'
+
+# patch configs for auth
+  # patch the local configs for .htaccess
+sed -i 's/    name: anypassword/    name: htpasswd_provider/' /root/openshift-config/master/master-config.yaml
+sed -i 's/      kind: AllowAllPasswordIdentityProvider/      kind: HTPasswdPasswordIdentityProvider\n      file: \/var\/lib\/origin\/openshift.local.config\/ose-htpasswd/'  /root/openshift-config/master/master-config.yaml
+
+# get the node folder name
+cd /root/openshift-config/
+nodedir=$(ls | grep node)
+# run openshift
  docker run -d --name "ose" --privileged --pid=host --net=host -v \
  /:/rootfs:ro -v /var/run:/var/run:rw -v /sys:/sys -v \
  /var/lib/docker:/var/lib/docker:rw  \
  -v /var/lib/origin/openshift.local.volumes:/var/lib/origin/openshift.local.volumes \
+ -v /root/openshift-config:/var/lib/origin/openshift.local.config \
  openshift3/ose start \
- --public-master={{ose_public_master}}
+ --master-config=/var/lib/origin/openshift.local.config/master/master-config.yaml \
+ --node-config=/var/lib/origin/openshift.local.config/$nodedir/node-config.yaml
 
 # setup the registry storage mount permissions:
 chcon -Rt svirt_sandbox_file_t /opt/openshift-registry
 chown -R 1001.root /opt/openshift-registry
 
-
 # wait for openshift to start..
 sleep 15
+
+# make admin cluster-admin
+docker exec ose /bin/bash -c "oadm policy add-cluster-role-to-user cluster-admin admin"
 
 # make root on host system admin for openshift
 mkdir /root/.kube
 docker cp ose:/var/lib/origin/openshift.local.config/master/admin.kubeconfig /root/.kube/config
 export KUBECONFIG=/root/.kube/config
-
-htpasswd -cb ose-htpasswd admin '{{ose_admin_password}}'
-docker cp ose-htpasswd ose:/root/ose-htpasswd
 
 # copy the oc binary to the ec2 host
 docker cp ose:/usr/bin/oc /usr/bin/oc
@@ -88,16 +107,6 @@ docker exec ose /bin/bash -c \
    oadm router router --replicas=1  --service-account=router; \
    oc expose service docker-registry --hostname r.$(curl -s  http://169.254.169.254/latest/meta-data/public-ipv4).xip.io"
 
-
-# setup htaccess authentication
-# make 'admin' cluster administrator
-
-docker exec ose /bin/bash -c \
-   "oadm policy add-cluster-role-to-user cluster-admin admin; \
-   openshift start --write-config=/var/lib/origin/openshift.local.config; \
-   sed -i 's/    name: anypassword/    name: htpasswd_provider/' /var/lib/origin/openshift.local.config/master/master-config.yaml; \
-   sed -i 's/      kind: AllowAllPasswordIdentityProvider/      kind: HTPasswdPasswordIdentityProvider\n      file: \/root\/ose-htpasswd/'  /var/lib/origin/openshift.local.config/master/master-config.yaml"
-
 sleep 2
 docker stop ose
 sleep 5
@@ -113,11 +122,6 @@ chmod 600 /root/.ssh/known_hosts
 # login
 /bin/bash -c \
   "oc login --insecure-skip-tls-verify=true -u admin -p {{ose_admin_password}} localhost"
-
-# until [ -e /root/.kube/config ]; do
-#  oc login --insecure-skip-tls-verify=true -u admin -p {{ose_admin_password}} localhost
-#  sleep 2
-# done
 
 # setup imagestreams
 cd /root/deploy-ose

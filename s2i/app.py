@@ -351,7 +351,8 @@ def main():
                    'user_script_exec': user_script_exec,
                    'user_script_b64': user_script_b64,
                    'import_is_b64': import_is_b64,
-                   'ose_public_master': ose_public_master}
+                   'ose_public_master': ose_public_master,
+                   'ose_admin_password': ose_admin_password}
 
     # create a cache dictionary to write later
     deploy_cache = {'rh_id': rh_id,
