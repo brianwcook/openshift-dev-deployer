@@ -54,6 +54,7 @@ docker run --rm -v /root/openshift-config:/openshift.local.config \
   -t openshift3/ose start \
   --master=localhost \
   --public-master={{ose_public_master}} \
+  --hostname=localhost \
   --write-config=/openshift.local.config
 
 
